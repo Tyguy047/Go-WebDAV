@@ -1,0 +1,2 @@
+#!/bin/bash
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/Linux-AMD64/Go-WebDAV

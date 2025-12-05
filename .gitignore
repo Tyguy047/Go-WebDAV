@@ -1,0 +1,8 @@
+# Builds
+bin/
+
+# Data folder - This is the folder where the users files are stored
+data/
+
+# Mac OS spesific
+*.DS_Store

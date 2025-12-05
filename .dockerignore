@@ -1,0 +1,17 @@
+# Builds
+bin/
+
+# Data folder - This is the folder where the users files are stored
+data/
+
+# Scripts used to build the binary
+*.sh
+
+# Git ignore file
+.gitignore
+
+# Mac OS spesific
+*.DS_Store
+
+# README.md file
+README.md
