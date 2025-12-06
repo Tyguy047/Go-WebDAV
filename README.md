@@ -1,4 +1,7 @@
 # Go WebDAV
+  <img src="logo.png" alt="Go WebDAV Logo" width="256" height="256"><br>
+
+# About
 Go WebDAV is a Network Attached Storage (NAS) server that is extremely minimal and lightweight to run. It is intended for one user; however, you are free to modify it if you would like to tailor it to a specific multi-user use case.
 
 # How to Use
