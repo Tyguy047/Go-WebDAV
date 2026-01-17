@@ -1,0 +1,94 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+Go WebDAV is a minimal, single-user Network Attached Storage (NAS) server written in Go. It provides WebDAV protocol access to a local directory with HTTP Basic Authentication.
+
+## Build Commands
+
+```bash
+# Local build (native architecture)
+./build-local.sh
+# Output: bin/Local/Go-WebDAV
+
+# Linux AMD64 build
+./build-for-linux-AMD64.sh
+# Output: bin/Linux-AMD64/Go-WebDAV
+
+# Linux ARM64 build
+./build-for-linux-ARM64.sh
+# Output: bin/Linux-ARM64/Go-WebDAV
+
+# Build all platforms
+./build-for-all-platforms.sh
+
+# Manual build
+go build -o Go-WebDAV .
+
+# Docker build and run
+docker compose up -d
+```
+
+## Running the Server
+
+**Environment Variables Required:**
+- `USERNAME` - Authentication username
+- `PASSWORD` - Authentication password
+
+```bash
+# Run locally
+export USERNAME=myuser
+export PASSWORD=mypass
+./Go-WebDAV
+
+# Or with Docker
+# Edit docker-compose.yml to set USERNAME and PASSWORD
+docker compose up -d
+```
+
+The server listens on port 8080 and serves files from the `./data` directory.
+
+## Architecture
+
+This is a flat, simple architecture with no subdirectories:
+
+- [main.go](main.go) - Entry point; sets up WebDAV handler with Basic Auth middleware
+- [auth.go](auth.go) - Authentication logic comparing credentials against environment variables
+- [checks.go](checks.go) - Startup validation (checks for USERNAME/PASSWORD env vars and creates `./data` directory if missing)
+- [return_ip.go](return_ip.go) - Helper to determine local IP for logging connection URL
+
+**Key Architecture Details:**
+
+1. **WebDAV Handler**: Uses `golang.org/x/net/webdav` package with an in-memory lock system (`NewMemLS()`)
+2. **File System**: Serves `./data` directory at root path `/`
+3. **Authentication**: HTTP Basic Auth middleware wraps the WebDAV handler; credentials validated on every request
+4. **Startup Flow**:
+   - Check USERNAME/PASSWORD env vars exist and warn if defaults
+   - Create `./data` directory if missing
+   - Initialize WebDAV handler
+   - Wrap with auth middleware
+   - Start server on `:8080`
+
+## Dependencies
+
+- Go 1.25.5
+- `golang.org/x/net/webdav` - WebDAV protocol implementation
+
+Run `go mod download` to fetch dependencies.
+
+## Docker Deployment
+
+The Dockerfile uses a multi-stage build:
+1. Build stage: golang:1.25 image compiles static binary
+2. Runtime stage: alpine:latest for minimal footprint
+
+Data persistence is via volume mount of `./data` to `/data` in the container.
+
+## Security Notes
+
+- HTTP Basic Auth credentials are validated from environment variables
+- Default credentials (`username`/`password`) trigger a warning
+- Recommended to deploy behind reverse proxy (Caddy/NGINX) for HTTPS
+- Server binds to all interfaces (`:8080`); use firewall rules or Docker port binding (`127.0.0.1:8080:8080`) to restrict access
