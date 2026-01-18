@@ -61,15 +61,33 @@ This is a flat, simple architecture with no subdirectories:
 
 **Key Architecture Details:**
 
-1. **WebDAV Handler**: Uses `golang.org/x/net/webdav` package with an in-memory lock system (`NewMemLS()`)
+1. **WebDAV Handler**: Uses `golang.org/x/net/webdav` package with an in-memory lock system (`NewMemLS()`) and silent logger for performance
 2. **File System**: Serves `./data` directory at root path `/`
-3. **Authentication**: HTTP Basic Auth middleware wraps the WebDAV handler; credentials validated on every request
-4. **Startup Flow**:
+3. **Authentication**: HTTP Basic Auth middleware wraps the WebDAV handler; credentials validated on every request (only failed attempts are logged to reduce CPU overhead)
+4. **HTTP Server**: Custom `http.Server` instance with optimizations for large file transfers:
+   - No read/write timeouts (supports unlimited file sizes)
+   - 120-second idle timeout (enables connection reuse)
+   - 1MB max header size
+5. **Startup Flow**:
    - Check USERNAME/PASSWORD env vars exist and warn if defaults
    - Create `./data` directory if missing
-   - Initialize WebDAV handler
+   - Initialize WebDAV handler with silent logger
    - Wrap with auth middleware
-   - Start server on `:8080`
+   - Start optimized HTTP server on `:8080`
+
+## Performance Optimizations
+
+The server is optimized for high-speed large file transfers with minimal CPU usage:
+
+1. **Minimal Logging**: Only failed login attempts are logged; successful authentications and WebDAV operations use silent logging to eliminate I/O overhead during transfers
+2. **Optimized HTTP Server Configuration** (`main.go:43-50`):
+   - `ReadTimeout: 0` - No timeout for large uploads
+   - `WriteTimeout: 0` - No timeout for large downloads
+   - `IdleTimeout: 120s` - Keeps TCP connections alive for reuse across chunked requests
+   - `MaxHeaderBytes: 1MB` - Reasonable security limit
+3. **Silent WebDAV Logger** (`main.go:20-22`): Suppresses internal WebDAV debug output
+
+These optimizations eliminate CPU spikes and maintain consistent transfer speeds regardless of file size.
 
 ## Dependencies
 

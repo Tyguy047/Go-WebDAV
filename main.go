@@ -3,6 +3,7 @@ package main
 import (
     "log"
     "net/http"
+    "time"
     "golang.org/x/net/webdav"
 )
 
@@ -15,6 +16,9 @@ func main() {
         Prefix: "/",
         FileSystem: webdav.Dir("./data"),
         LockSystem: webdav.NewMemLS(),
+        Logger: func(r *http.Request, err error) {
+            // Silent logger - suppress WebDAV internal logging for performance
+        },
     }
 
     authMiddleware := func(h http.Handler) http.Handler {
@@ -33,5 +37,16 @@ func main() {
     log.Println("Server is running!")
     // Opening and loging in in your browser may cause a flood of requests!
     log.Println("http://" + addr + ":8080")
-    http.ListenAndServe(":8080", authMiddleware(handler))
+
+    // Custom HTTP server with optimized settings for large file transfers
+    server := &http.Server{
+        Addr:           ":8080",
+        Handler:        authMiddleware(handler),
+        ReadTimeout:    0,                 // No timeout for large file uploads
+        WriteTimeout:   0,                 // No timeout for large file downloads
+        IdleTimeout:    120 * time.Second, // Keep connections alive between requests
+        MaxHeaderBytes: 1 << 20,           // 1 MB max header size
+    }
+
+    log.Fatal(server.ListenAndServe())
 }

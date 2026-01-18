@@ -13,8 +13,6 @@ func auth(triedUser string, triedPass string) bool {
 	if triedUser != user || triedPass != pass {
 		log.Println("Failed login attempt!")
 		return false
-	} else {
-		log.Println("User has been authenticated!")
-		return true
 	}
+	return true
 }
