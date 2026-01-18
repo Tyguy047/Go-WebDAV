@@ -15,8 +15,8 @@ The following is a guide on how to get your own instance of Go WebDAV up and run
 
 - Edit the default username and password. To do this run `nano docker-compose.yml`, and change the `USERNAME` and `PASSWORD` variables. *This step is optional but recommended for security!*
 
-- Once you have downloaded the repository, run the `docker-compose.yml` file by running:  
-  `docker compose up -d`  
+- Once you have downloaded the repository, run the `docker-compose.yml` file by running:
+  `docker compose up -d` or `make docker-up`
   *The `-d` flag runs the container detached.*
 
 - That’s it! Now google a guide on how to connect to a NAS on Windows, macOS, or the file explorer of your choice on Linux. Once you find out how to connect, use this URL:  
@@ -41,8 +41,69 @@ export PASSWORD=password
 
 - To exit screen, use `Ctrl+a` and then `Ctrl+d`.
 
-That’s all! Now google a guide on how to connect to a NAS on Windows, macOS, or the file explorer of your choice on Linux. Once you find out how to connect, use this URL:  
+That's all! Now google a guide on how to connect to a NAS on Windows, macOS, or the file explorer of your choice on Linux. Once you find out how to connect, use this URL:
 `http://<your-server's-ip>:8080`.
+
+## Building from Source
+*If you want to build Go WebDAV yourself or contribute to development, you can use the included Makefile.*
+
+**Prerequisites:**
+- Go 1.25.5 or later installed
+- Make utility (standard on macOS and Linux)
+
+**Clone the repository:**
+```bash
+git clone https://github.com/Tyguy047/Go-WebDAV.git
+cd Go-WebDAV
+```
+
+**Build commands:**
+```bash
+# Build for your local architecture
+make local
+# Output: bin/Local/Go-WebDAV
+
+# Build for Linux AMD64 (most servers)
+make linux-amd64
+# Output: bin/Linux-AMD64/Go-WebDAV
+
+# Build for Linux ARM64 (Raspberry Pi, ARM servers)
+make linux-arm64
+# Output: bin/Linux-ARM64/Go-WebDAV
+
+# Build for all platforms at once
+make all
+
+# Clean build artifacts
+make clean
+
+# See all available commands
+make help
+```
+
+**Running your local build:**
+```bash
+# Option 1: Build and run in one command
+USERNAME=myuser PASSWORD=mypass make run
+
+# Option 2: Build first, then run
+make local
+export USERNAME=myuser
+export PASSWORD=mypass
+./bin/Local/Go-WebDAV
+```
+
+**Docker build:**
+```bash
+# Build and start Docker container
+make docker-up
+
+# Stop Docker container
+make docker-down
+
+# Build Docker image only
+make docker-build
+```
 
 ## Implement Caddy (Optional)
 Caddy is optional; however, it is recommended so that your files cannot be read by others who may be snooping on your network. Caddy is a reverse proxy that allows you to easily configure an HTTPS connection between you and your server rather than the default HTTP connection. Caddy will work best on a VPS rather than your home network.
@@ -84,6 +145,8 @@ Congratulations — you now have an HTTPS-secured NAS! Now google a guide on how
 
 # Development Info
 - Coded in Go 1.25.5.
+- Use the Makefile for building: `make help` shows all available build targets.
+- Cross-compilation support for Linux AMD64 and ARM64 architectures.
 - It is recommended to run in a Docker container so you can consistently set a username and password in the `docker-compose.yml` file.
 - Developed on an M1 MacBook Air and cross-compiled for other architectures and platforms.
 - By default, the Docker container runs Alpine Linux since it has an extremely small footprint and Go WebDAV is designed to be minimalistic.

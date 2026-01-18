@@ -10,25 +10,31 @@ Go WebDAV is a minimal, single-user Network Attached Storage (NAS) server writte
 
 ```bash
 # Local build (native architecture)
-./build-local.sh
+make local
 # Output: bin/Local/Go-WebDAV
 
 # Linux AMD64 build
-./build-for-linux-AMD64.sh
+make linux-amd64
 # Output: bin/Linux-AMD64/Go-WebDAV
 
 # Linux ARM64 build
-./build-for-linux-ARM64.sh
+make linux-arm64
 # Output: bin/Linux-ARM64/Go-WebDAV
 
 # Build all platforms
-./build-for-all-platforms.sh
+make all
 
-# Manual build
-go build -o Go-WebDAV .
+# Clean build artifacts
+make clean
+
+# Show all available targets
+make help
 
 # Docker build and run
-docker compose up -d
+make docker-up
+
+# Manual build (without Makefile)
+go build -o Go-WebDAV .
 ```
 
 ## Running the Server
@@ -38,14 +44,18 @@ docker compose up -d
 - `PASSWORD` - Authentication password
 
 ```bash
-# Run locally
+# Run locally (builds and runs)
+USERNAME=myuser PASSWORD=mypass make run
+
+# Or build first, then run
+make local
 export USERNAME=myuser
 export PASSWORD=mypass
-./Go-WebDAV
+./bin/Local/Go-WebDAV
 
 # Or with Docker
 # Edit docker-compose.yml to set USERNAME and PASSWORD
-docker compose up -d
+make docker-up
 ```
 
 The server listens on port 8080 and serves files from the `./data` directory.
@@ -80,12 +90,12 @@ This is a flat, simple architecture with no subdirectories:
 The server is optimized for high-speed large file transfers with minimal CPU usage:
 
 1. **Minimal Logging**: Only failed login attempts are logged; successful authentications and WebDAV operations use silent logging to eliminate I/O overhead during transfers
-2. **Optimized HTTP Server Configuration** (`main.go:43-50`):
+2. **Optimized HTTP Server Configuration** (`main.go:42-49`):
    - `ReadTimeout: 0` - No timeout for large uploads
    - `WriteTimeout: 0` - No timeout for large downloads
    - `IdleTimeout: 120s` - Keeps TCP connections alive for reuse across chunked requests
    - `MaxHeaderBytes: 1MB` - Reasonable security limit
-3. **Silent WebDAV Logger** (`main.go:20-22`): Suppresses internal WebDAV debug output
+3. **Silent WebDAV Logger** (`main.go:19-21`): Suppresses internal WebDAV debug output
 
 These optimizations eliminate CPU spikes and maintain consistent transfer speeds regardless of file size.
 
